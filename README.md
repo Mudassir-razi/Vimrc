@@ -19,6 +19,8 @@ Vim configuration script
 | *ctrl-f*     |  format selected port connection of instantiated modules
 | *tab*        |  inserts tab in before the selected text
 | *shift-tab*  |  remove tab from selected text
+| *c*          |  Copyies selected text
+| *ctrl-i*     |  if the input-output ports of module is copied, instantiates with the same name
 
 
 **Extra featues:**
