@@ -9,7 +9,8 @@ Vim configuration script
 * clkf    ->  code snippet for testbench clock and fail-safe simulation finish
 * delayt  ->  code snippet for testbench delay task
 
-* shortcuts (visual mode) *
+
+**shortcuts (visual mode)**
 * ctrl-c     ->  comment/uncomment selected text
 * ctrl-f     ->  format selected port connection of instantiated modules
 * tab        ->  inserts tab in before the selected text
