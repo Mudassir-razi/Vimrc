@@ -1,7 +1,7 @@
 # Vimrc
 Vim configuration script
 
-*Usage*
+**Usage**
 
 *Snippets*
 flop    ->  code snippet for a d-flip-flop
