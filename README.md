@@ -3,7 +3,7 @@ Vim configuration script
 
 **Usage**
 
-**Snippets**
+**Snippets:** pressing 'space' or 'tab' after typing the trigger inserts the snippet
 | Trigger | Description |
 | --- | --- |
 | *flop*    |  code snippet for a d-flip-flop
@@ -19,4 +19,8 @@ Vim configuration script
 | *ctrl-f*     |  format selected port connection of instantiated modules
 | *tab*        |  inserts tab in before the selected text
 | *shift-tab*  |  remove tab from selected text
+
+
+**Extra featues:**
+* autocomplete is triggered for keywords such as- 'begin', 'always'. 
 
