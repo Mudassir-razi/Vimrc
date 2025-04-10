@@ -15,12 +15,13 @@ Vim configuration script
 **shortcuts (visual mode)**
 | Command | Description |
 | --- | --- |
-| *ctrl-c*     |  comment/uncomment selected text
-| *ctrl-f*     |  format selected port connection of instantiated modules
+| *ctrl-C*     |  comment/uncomment selected text
+| *ctrl-F*     |  format selected port connection of instantiated modules
 | *tab*        |  inserts tab in before the selected text
 | *shift-tab*  |  remove tab from selected text
-| *c*          |  Copyies selected text
-| *ctrl-i*     |  if the input-output ports of module is copied, instantiates with the same name
+| *C*          |  Copies selected text
+| *P*          |  pastes selected text
+| *ctrl-I*     |  if the input-output ports of module is copied, instantiates with the same name
 
 
 **Extra featues:**
