@@ -31,11 +31,24 @@ highlight sv_group guifg=CornflowerBlue gui=Bold
 highlight comment guibg=white
 highlight comment guifg=black
 
-
+"Insert mode keymaps
 " Automatically insert 'end' after typing 'begin'
 inoremap begin begin<CR><CR>end
 inoremap always always@()begin<CR><CR>end
 
+"abbreviations for code snippets
+iabbrev mod <Esc>: call Snippet(0)<CR>
+iabbrev clkf <Esc>: call Snippet(1)<CR>
+iabbrev delayt <Esc>: call Snippet(2)<CR>
+iabbrev flop <Esc>: call Snippet(3)<CR>
+
+"visual mode keyshortcuts
+vnoremap <C-C> : call Com()<CR>
+vnoremap <Tab> : call Add_tab()<CR>
+vnoremap <S-Tab> : call Remove_tab()<CR>
+vnoremap <C-F>  :<C-U> call Format(line("'<"), line("'>"))<CR>
+vnoremap <C-I>  :<C-U> call Instantiate()<CR>
+vnoremap c "+y
 
 "code snippets
 function! Snippet(serial)
@@ -83,16 +96,25 @@ function! Remove_tab()
   execute '.' . "s/  \\(.*\\)/\\1" 
 endfunction
 
-
-iabbrev mod <Esc>: call Snippet(0)<CR>
-iabbrev clkf <Esc>: call Snippet(1)<CR>
-iabbrev delayt <Esc>: call Snippet(2)<CR>
-iabbrev flop <Esc>: call Snippet(3)<CR>
-
-vnoremap <C-C> : call Com()<CR>
-vnoremap <Tab> : call Add_tab()<CR>
-vnoremap <S-Tab> : call Remove_tab()<CR>
-vnoremap <C-F>  :<C-U> call Format(line("'<"), line("'>"))<CR>
+"paste the instantiation code of a module if the input-output ports are copied
+"from the diclaration 
+function! Instantiate()
+  let snip = ""
+  let clip_cont = getreg('"+y')
+  let lines = split(clip_cont, "\n")
+  echo len(lines)
+  for i in range(0, len(lines)-1)
+    let port = matchstr(lines[i], '\s*\(input\|output\)\s*logic\s*\(\[.*\]\)*\s*\zs\w*')
+    if len(port) > 0
+      let port2 = "." . port
+      let snip = snip . "\r" . port2 ."(" . port . "),"
+    else 
+      let snip = snip . "\r"
+    endif
+  endfor
+  execute "." . "s/.*/" . snip
+  startinsert
+endfunction
 
 
 "........................////////////////////////////////////////////////////////.................
@@ -117,7 +139,6 @@ function! Format(start, end)
 	let pin  = strlen(matchstr(getline(i), '(\s*\zs\S\+\ze\s*)'))
 
 	if max_padd < pad
-
   	let max_padd = pad
 	endif
 	
