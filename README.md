@@ -17,7 +17,7 @@ Vim configuration script
 | --- | --- |
 | *ctrl-C*     |  comment/uncomment selected text
 | *ctrl-F*     |  format selected port connection of instantiated modules
-| *tab*        |  inserts tab in before the selected text
+| *ctrl-tab*        |  inserts tab in before the selected text
 | *shift-tab*  |  remove tab from selected text
 | *C*          |  Copies selected text
 | *P*          |  pastes selected text
