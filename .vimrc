@@ -44,7 +44,7 @@ iabbrev flop <Esc>: call Snippet(3)<CR>
 
 "visual mode keyshortcuts
 vnoremap <C-C> : call Com()<CR>
-vnoremap <Tab> : call Add_tab()<CR>
+vnoremap <C-Tab> : call Add_tab()<CR>
 vnoremap <S-Tab> : call Remove_tab()<CR>
 vnoremap <C-F>  :<C-U> call Format(line("'<"), line("'>"))<CR>
 vnoremap <C-I>  :<C-U> call Instantiate()<CR>
