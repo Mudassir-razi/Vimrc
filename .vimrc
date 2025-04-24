@@ -65,7 +65,7 @@ function! Snippet(serial)
     elseif a:serial == 2
       let snip = "task delay; (integer a)\r\trepeat(a)begin\r\t\t@(posedge clk);\r\tend\rendtask"
     elseif a:serial == 3
-      let snip = "dff u_dff\r(\r\t.RESET_VALUE(1'b0),\r\t.FLOP_WIDTH(1)\r)(\r\t.clk(clk),\r\t.reset_b(reset),\r\t.d(),\r\t.q()\r);"
+      let snip = "dff #(\r\t.RESET_VALUE(1'b0),\r\t.FLOP_WIDTH(1)\r)u_dff(\r\t.clk(clk),\r\t.reset_b(reset),\r\t.d(),\r\t.q()\r);"
     endif
     execute "." . "s/.*/" . snip
     call setpos('.', prev_pos)
