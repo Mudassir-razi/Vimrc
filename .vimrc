@@ -9,6 +9,7 @@
 "............shotcuts (visual mode).............
 "ctrl-c   -> comment/uncomment selected code
 "ctrl-f   -> format selected port connection of instantiated modules
+"ctrl-i	  -> Instantiate copied ports
 "tab      -> insert tab to selected text
 "shift-tab-> remove tab from selected text
 
@@ -65,7 +66,7 @@ function! Snippet(serial)
     elseif a:serial == 2
       let snip = "task delay; (integer a)\r\trepeat(a)begin\r\t\t@(posedge clk);\r\tend\rendtask"
     elseif a:serial == 3
-      let snip = "dff #(\r\t.RESET_VALUE(1'b0),\r\t.FLOP_WIDTH(1)\r)u_dff(\r\t.clk(clk),\r\t.reset_b(reset),\r\t.d(),\r\t.q()\r);"
+      let snip = "dff u_dff\r(\r\t.RESET_VALUE(1'b0),\r\t.FLOP_WIDTH(1)\r)(\r\t.clk(clk),\r\t.reset_b(reset),\r\t.d(),\r\t.q()\r);"
     endif
     execute "." . "s/.*/" . snip
     call setpos('.', prev_pos)
@@ -118,9 +119,9 @@ endfunction
 
 
 "........................////////////////////////////////////////////////////////.................
-"
+
 "Formats lines that have port connection such as '.clk(sclk) -> .clk( sclk  )'
-"
+
 "......................../////////////////////////////////////////////////////................
 
 
@@ -129,48 +130,143 @@ function! Format(start, end)
   let max_padd = 0
   let max_port = 0
   let max_pin  = 0
+  let type     = 0
 
+" Trying to figure out which type of formatting is needed
 
-  " FIrst pass, getting the maximum port length and spacing
   for i in range(a:start, a:end)
- 
-	let pad = strlen(matchstr(getline(i), '\s*'))
-	let port  = strlen(matchstr(getline(i), '\S*\ze\s*(.*)'))
-	let pin  = strlen(matchstr(getline(i), '(\s*\zs\S\+\ze\s*)'))
+    if  strlen(matchstr(getline(i), '\S*=\S*'))
+      let type = 3
+      break
+    elseif strlen(matchstr(getline(i), '\s*logic'))
+      let type = 2
+      break
+    elseif strlen(matchstr(getline(i), '\S*\ze\s*(.*)'))
+      let type = 1
+      break
+    endif
+  endfor
+  echo type
 
-	if max_padd < pad
-  	let max_padd = pad
-	endif
-	
-	if max_port < port
-  	let max_port = port
-	endif
- 
-	if max_pin < pin
-  	let max_pin = pin
-	endif
+  if type == 1
+    " FIrst pass, getting the maximum port length and spacing
+    for i in range(a:start, a:end)
+      let pad = strlen(matchstr(getline(i), '\s*'))
+    	let port  = strlen(matchstr(getline(i), '\S*\ze\s*(.*)'))
+    	let pin  = strlen(matchstr(getline(i), '(\s*\zs\S\+\ze\s*)'))
+    
+    	if max_padd < pad
+      	let max_padd = pad
+    	endif
+    	
+    	if max_port < port
+      	let max_port = port
+    	endif
+     
+    	if max_pin < pin
+      	let max_pin = pin
+    	endif
+    
+    endfor
+   
+    "second pass, going through the whole thing and fixing
+    for i in range(a:start, a:end)
   
-  endfor
- 
-  "second pass, going through the whole thing and fixing
-  for i in range(a:start, a:end)
+  	let port  = matchstr(getline(i), '\S*\ze\s*(.*)')
+  	let pin  = matchstr(getline(i), '(\s*\zs\S*\ze\s*)')
+  	let pin_end = matchstr(getline(i), '(\s*\S\+\s*\zs).*')
+  
+  	let sp1 = repeat(' ', max_padd)
+  	let sp2 = repeat(' ', max_port - strlen(port))
+  	let sp3 = repeat(' ', max_pin - strlen(pin))
+  	
+  	if strlen(port) > 0
+   	
+    	let line = sp1 . port . sp2 . " ( ". pin . sp3 . pin_end
+   	
+  	execute i . "s/.*/". line .  "/g"
+  	endif
+  	
+    endfor
 
-	let port  = matchstr(getline(i), '\S*\ze\s*(.*)')
-	let pin  = matchstr(getline(i), '(\s*\zs\S*\ze\s*)')
-	let pin_end = matchstr(getline(i), '(\s*\S\+\s*\zs).*')
+  "Type two formatting. module port declaration format
+  elseif type == 2
+    let maxpad = 0
+    let maxinout = 0
+    let maxlogic = 0
+    let maxport = 0
+    "First pass
+    for i in range(a:start,a:end)
+      let pad     = matchstr(getline(i), '\s*')
+    	let inout   = matchstr(getline(i), '\s*\zs\S*\ze\s\+')
+    	let logic   = matchstr(getline(i), '\s*\(input\|output\)\s*\zslogic\s*\(\[.*\]\)*\ze\s*')
+      let port    = matchstr(getline(i), '\s*\(input\|output\)\s*logic\s*\(\[.*\]\)*\s*\zs.*')
 
-	let sp1 = repeat(' ', max_padd)
-	let sp2 = repeat(' ', max_port - strlen(port))
-	let sp3 = repeat(' ', max_pin - strlen(pin))
-	
-	if strlen(port) > 0
- 	
-  	let line = sp1 . port . sp2 . " ( ". pin . sp3 . pin_end
- 	
-	execute i . "s/.*/". line .  "/g"
-	endif
-	
-  endfor
+      if strlen(pad) > strlen(maxpad)
+        let maxpad = pad
+      endif
+
+      if strlen(inout) > strlen(maxinout)
+        let maxinout = inout
+      endif
+
+      if strlen(logic) > strlen(maxlogic)
+        let maxlogic = logic
+      endif
+      
+      if strlen(port) > strlen(maxport)
+        let maxport = port
+      endif 
+    endfor
+    "Second pass
+    for i in range(a:start, a:end)
+      let inout   = matchstr(getline(i), '\s*\zs\S*\ze\s\+')
+    	let logic   = matchstr(getline(i), '\s*\(input\|output\)\s*\zslogic\s*\(\[.*\]\)*\ze\s*')
+      let port    = matchstr(getline(i), '\s*\(input\|output\)\s*logic\s*\(\[.*\]\)*\s*\zs.*')
+    
+      let sp1 = repeat(' ', strlen(maxpad))
+      let sp3 = repeat(' ', strlen(maxinout) - strlen(inout))
+    	let sp2 = repeat(' ', strlen(maxlogic) - strlen(logic))
+      let line= sp1 . inout . sp3 . ' ' . logic . ' ' . sp2 . port
+      execute i . "s/.*/". line . "/g"
+
+    endfor
+" Type three formatting
+   elseif type == 3
+    let maxpad = 0
+    let maxlhs = 0
+    let maxrhs = 0
+    for i in range(a:start,a:end)
+      let pad   = matchstr(getline(i), '^\s*')
+    	let lhs   = matchstr(getline(i), '^\s*\zs\S*\s*\S*\ze\s*[\(<=\)\|(=\s*\)]')
+    	let rhs   = matchstr(getline(i), '^\s*\S*\s*\S*\s*[\(<=\)\|(=\s*\)]\s*\zs\.*\ze')
+      echo lhs
+      echo rhs
+      if strlen(pad) > strlen(maxpad)
+        let maxpad = pad
+      endif
+
+      if strlen(lhs) > strlen(maxlhs)
+        let maxlhs = lhs
+      endif
+
+      if strlen(rhs) > strlen(maxrhs)
+        let maxrhs = rhs
+      endif
+
+    endfor
+    for i in range(a:start, a:end)
+      let lhs   = matchstr(getline(i), '^\s*\zs.*\ze[^=]=[^=]')
+    	let rhs   = matchstr(getline(i), '^.*[^=]=[^=]\s*\zs.*')
+      
+      let sp1 = repeat(' ', strlen(maxlhs) - strlen(lhs))
+      let line = maxpad . lhs . sp1 . '= ' . rhs
+      execute i . "s/.*/" . line . "/g"
+    endfor
+  endif
+
+
 
 endfunction
+
 
