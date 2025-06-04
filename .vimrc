@@ -9,7 +9,6 @@
 "............shotcuts (visual mode).............
 "ctrl-c   -> comment/uncomment selected code
 "ctrl-f   -> format selected port connection of instantiated modules
-"ctrl-i	  -> Instantiate copied ports
 "tab      -> insert tab to selected text
 "shift-tab-> remove tab from selected text
 
@@ -47,7 +46,7 @@ iabbrev flop <Esc>: call Snippet(3)<CR>
 vnoremap <C-C> : call Com()<CR>
 vnoremap <C-Tab> : call Add_tab()<CR>
 vnoremap <S-Tab> : call Remove_tab()<CR>
-vnoremap <C-F>  :<C-U> call Format(line("'<"), line("'>"))<CR>
+xnoremap <silent> <C-F>  :<C-U> call Format(line("'<"), line("'>"))<CR>
 vnoremap <C-I>  :<C-U> call Instantiate()<CR>
 vnoremap c "+y
 
@@ -151,7 +150,7 @@ function! Format(start, end)
   if type == 1
     " FIrst pass, getting the maximum port length and spacing
     for i in range(a:start, a:end)
-      let pad = strlen(matchstr(getline(i), '\s*'))
+      let pad = strlen(matchstr(getline(i), '^\s*'))
     	let port  = strlen(matchstr(getline(i), '\S*\ze\s*(.*)'))
     	let pin  = strlen(matchstr(getline(i), '(\s*\zs\S\+\ze\s*)'))
     
@@ -233,15 +232,14 @@ function! Format(start, end)
     endfor
 " Type three formatting
    elseif type == 3
-    let maxpad = 0
-    let maxlhs = 0
-    let maxrhs = 0
+    let maxpad = ''
+    let maxlhs = ''
+    let maxrhs = ''
     for i in range(a:start,a:end)
       let pad   = matchstr(getline(i), '^\s*')
-    	let lhs   = matchstr(getline(i), '^\s*\zs\S*\s*\S*\ze\s*[\(<=\)\|(=\s*\)]')
-    	let rhs   = matchstr(getline(i), '^\s*\S*\s*\S*\s*[\(<=\)\|(=\s*\)]\s*\zs\.*\ze')
-      echo lhs
-      echo rhs
+    	let lhs   = matchstr(getline(i), '^\s*\zs[^=]\{-}\ze\s*<*=')
+    	let rhs   = matchstr(getline(i), '^\s*[^=]\{-}\s*<*=\s*\zs.*\ze$')
+      let lhs = matchstr(lhs, '^\zs.\{-}\ze\s*$')
       if strlen(pad) > strlen(maxpad)
         let maxpad = pad
       endif
@@ -256,17 +254,16 @@ function! Format(start, end)
 
     endfor
     for i in range(a:start, a:end)
-      let lhs   = matchstr(getline(i), '^\s*\zs.*\ze[^=]=[^=]')
-    	let rhs   = matchstr(getline(i), '^.*[^=]=[^=]\s*\zs.*')
-      
-      let sp1 = repeat(' ', strlen(maxlhs) - strlen(lhs))
-      let line = maxpad . lhs . sp1 . '= ' . rhs
-      execute i . "s/.*/" . line . "/g"
+    	let lhs   = matchstr(getline(i), '^\s*\zs[^=]\{-}\ze\s*<*=') 
+      let lhs = matchstr(lhs, '^\zs.\{-}\ze\s*$')
+    	let rhs   = matchstr(getline(i), '^\s*[^=]*\s*<*=\s*\zs.*\ze')
+      let op = matchstr(getline(i), '^.\{-}\zs<*=\ze.*')
+      let sp1   = repeat(' ', strlen(maxlhs) - strlen(lhs) + 1)
+      let line = maxpad . lhs . sp1 . op . ' ' . rhs
+      if strlen(lhs) > 0 
+        call setline(i, line)
+      endif
     endfor
   endif
 
-
-
 endfunction
-
-
