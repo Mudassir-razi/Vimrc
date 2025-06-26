@@ -48,6 +48,7 @@ vnoremap <C-Tab> : call Add_tab()<CR>
 vnoremap <S-Tab> : call Remove_tab()<CR>
 xnoremap <silent> <C-F>  :<C-U> call Format(line("'<"), line("'>"))<CR>
 vnoremap <C-I>  :<C-U> call Instantiate()<CR>
+vnoremap <C-W>  :<C-U> call InstantiateWire()<CR>
 vnoremap c "+y
 
 "code snippets
@@ -57,7 +58,7 @@ function! Snippet(serial)
     "insert new template here
     if a:serial == 0
       let prev_pos[2] = 8 
-      let snip = "module (\r\t\tinput logic clk,\r\t\tinput logic reset,\r\r);\r\rendmodule;/"
+      let snip = "module (\r\t\tinput logic clk,\r\t\tinput logic reset,\r\r);\r\rendmodule/"
     elseif a:serial == 1
       let prev_pos[2] = 0
       call setpos('.', prev_pos)
@@ -65,7 +66,7 @@ function! Snippet(serial)
     elseif a:serial == 2
       let snip = "task delay; (integer a)\r\trepeat(a)begin\r\t\t@(posedge clk);\r\tend\rendtask"
     elseif a:serial == 3
-      let snip = "dff u_dff\r(\r\t.RESET_VALUE(1'b0),\r\t.FLOP_WIDTH(1)\r)(\r\t.clk(clk),\r\t.reset_b(reset),\r\t.d(),\r\t.q()\r);"
+      let snip = "dff #(\r\t.RESET_VALUE(1'b0),\r\t.FLOP_WIDTH(1)\r)u_(\r\t.clk(clk),\r\t.reset_b(reset),\r\t.d(),\r\t.q()\r);"
     endif
     execute "." . "s/.*/" . snip
     call setpos('.', prev_pos)
@@ -115,6 +116,27 @@ function! Instantiate()
   execute "." . "s/.*/" . snip
   startinsert
 endfunction
+
+"paste the logic instantiation. 
+"Just omits the input output
+function! InstantiateWire()
+  let snip = ""
+  let clip_cont = getreg('"+y')
+  let lines = split(clip_cont, "\n")
+  echo len(lines)
+  for i in range(0, len(lines)-1)
+    let port = matchstr(lines[i], '\s*\(input\|output\)\s*logic\s*\zs.*\ze,$')
+    if len(port) > 0
+      let port2 = "." . port
+      let snip = snip . "\r" ."logic " . port . ";"
+    else 
+      let snip = snip . "\r"
+    endif
+  endfor
+  execute "." . "s/.*/" . snip
+  startinsert
+endfunction
+
 
 
 "........................////////////////////////////////////////////////////////.................
@@ -267,3 +289,4 @@ function! Format(start, end)
   endif
 
 endfunction
+
