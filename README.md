@@ -22,6 +22,7 @@ Vim configuration script
 | *C*          |  Copies selected text
 | *P*          |  pastes selected text
 | *ctrl-I*     |  if the input-output ports of module is copied, instantiates with the same name
+| *ctrl-W*     |  if the input-output ports of module is copied, pastes the ports without input/output declaration.
 
 
 **Extra featues:**
