@@ -203,7 +203,7 @@ function! Format(start, end)
   	
   	if strlen(port) > 0
    	
-    	let line = sp1 . port . sp2 . " ( ". pin . sp3 . pin_end
+    	let line = sp1 . port . sp2 . " ( ". pin . sp3 . " " . pin_end
    	
   	execute i . "s/.*/". line .  "/g"
   	endif
