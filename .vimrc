@@ -17,17 +17,35 @@
  set number
  colorscheme slate
  set cursorline
- syntax on
+ syntax enable
  set wildmenu
  set wildmode=list:longest
  set tabstop=2
  set incsearch
  set autoindent
  set expandtab
- set filetype=verilog
+
+" Enable syntax highlighting
+syntax on
+
+" Set terminal GUI colors (safe in gVim)
+set t_Co=256
+set background=dark        " or light
+colorscheme desert          " or your preferred colorscheme
+
+" Ensure colorscheme applies when GUI starts
+if has("gui_running")
+    colorscheme desert
+endif
+
+" Force colorscheme to apply after GUI loads
+autocmd GUIEnter * set background=dark | colorscheme desert
+
 
 syntax match sv_group /logic/
-highlight sv_group guifg=CornflowerBlue gui=Bold
+hi Normal ctermbg=none guibg=#0e1630
+highlight sv_group guifg=LightGreen gui=Bold
+highlight sv_group2 guifg =RED gui=Bold
 highlight comment guibg=white
 highlight comment guifg=black
 
