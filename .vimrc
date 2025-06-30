@@ -24,6 +24,7 @@
  set incsearch
  set autoindent
  set expandtab
+ set filetype=verilog
 
 " Enable syntax highlighting
 syntax on
