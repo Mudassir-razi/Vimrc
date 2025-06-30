@@ -26,29 +26,28 @@
  set expandtab
  set filetype=verilog
 
-" Enable syntax highlighting
-syntax on
 
 " Set terminal GUI colors (safe in gVim)
-set t_Co=256
-set background=dark        " or light
-colorscheme desert          " or your preferred colorscheme
+"colorscheme desert          " or your preferred colorscheme
 
-" Ensure colorscheme applies when GUI starts
-if has("gui_running")
-    colorscheme desert
-endif
+
+"autocmd BufReadPost * hi Normal ctermbg=none guibg=#0e1630
 
 " Force colorscheme to apply after GUI loads
-autocmd GUIEnter * set background=dark | colorscheme desert
+"autocmd GUIEnter * set background=dark | colorscheme desert
 
 
+function! Col()
+syntax enable
+set filetype=verilog
 syntax match sv_group /logic/
 hi Normal ctermbg=none guibg=#0e1630
 highlight sv_group guifg=LightGreen gui=Bold
 highlight sv_group2 guifg =RED gui=Bold
 highlight comment guibg=white
 highlight comment guifg=black
+endfunction
+autocmd BufReadPost * call Col()
 
 "Insert mode keymaps
 " Automatically insert 'end' after typing 'begin'
@@ -63,11 +62,12 @@ iabbrev flop <Esc>: call Snippet(3)<CR>
 
 "visual mode keyshortcuts
 vnoremap <C-C> : call Com()<CR>
-vnoremap <C-Tab> : call Add_tab()<CR>
-vnoremap <S-Tab> : call Remove_tab()<CR>
-xnoremap <silent> <C-F>  :<C-U> call Format(line("'<"), line("'>"))<CR>
+vnoremap <C-Tab> : call Add_tab()<CR>gv
+vnoremap <S-Tab> : call Remove_tab()<CR>gv
+xnoremap <silent> <C-F>  :<C-U> call Format(line("'<"), line("'>"))<CR>gv
 vnoremap <C-I>  :<C-U> call Instantiate()<CR>
 vnoremap <C-W>  :<C-U> call InstantiateWire()<CR>
+vnoremap <silent> <C-R>  :<C-U> call RemoveDuplicate(line("'<"), line("'>"))<CR>
 vnoremap c "+y
 
 "code snippets
@@ -104,16 +104,17 @@ function! Com()
   endif
 endfunction
 
+
 "Adds tab to selected lines in visual mode
 ""Press tab after selecting lines
 function! Add_tab()
-  execute '.' . "s/\\(.*\\)/  \\1" 
+  execute '.' . "s/\\(.*\\)/ \\1" 
 endfunction
 
 "Removes tab from the selected lines in visual mode
 ""Press shift-tab after selecting lines
 function! Remove_tab()
-  execute '.' . "s/  \\(.*\\)/\\1" 
+  execute '.' . "s/ \\(.*\\)/\\1" 
 endfunction
 
 "paste the instantiation code of a module if the input-output ports are copied
@@ -238,9 +239,9 @@ function! Format(start, end)
     "First pass
     for i in range(a:start,a:end)
       let pad     = matchstr(getline(i), '\s*')
-    	let inout   = matchstr(getline(i), '\s*\zs\S*\ze\s\+')
-    	let logic   = matchstr(getline(i), '\s*\(input\|output\)\s*\zslogic\s*\(\[.*\]\)*\ze\s*')
-      let port    = matchstr(getline(i), '\s*\(input\|output\)\s*logic\s*\(\[.*\]\)*\s*\zs.*')
+    	let inout   = matchstr(getline(i), '\s*\zs\(input\|output\)*\ze\s\+')
+    	let logic   = matchstr(getline(i), '\s*\(input\|output\)*\s*\zslogic\s*\(\[.*\]\)*\ze\s*')
+      let port    = matchstr(getline(i), '\s*\(input\|output\)*\s*logic\s*\(\[.*\]\)*\s*\zs.*')
 
       if strlen(pad) > strlen(maxpad)
         let maxpad = pad
@@ -260,9 +261,9 @@ function! Format(start, end)
     endfor
     "Second pass
     for i in range(a:start, a:end)
-      let inout   = matchstr(getline(i), '\s*\zs\S*\ze\s\+')
-    	let logic   = matchstr(getline(i), '\s*\(input\|output\)\s*\zslogic\s*\(\[.*\]\)*\ze\s*')
-      let port    = matchstr(getline(i), '\s*\(input\|output\)\s*logic\s*\(\[.*\]\)*\s*\zs.*')
+      let inout   = matchstr(getline(i), '\s*\zs\(input\|output\)*\ze\s\+')
+    	let logic   = matchstr(getline(i), '\s*\(input\|output\)*\s*\zslogic\s*\(\[.*\]\)*\ze\s*')
+      let port    = matchstr(getline(i), '\s*\(input\|output\)*\s*logic\s*\(\[.*\]\)*\s*\zs.*')
     
       let sp1 = repeat(' ', strlen(maxpad))
       let sp3 = repeat(' ', strlen(maxinout) - strlen(inout))
@@ -306,6 +307,14 @@ function! Format(start, end)
       endif
     endfor
   endif
+
+endfunction
+
+function! RemoveDuplicate(start, end)
+
+  for i in range(a:start, a:end)
+    let actual = matchstr(getline(i), '\s*logic\s*\zs\S*\ze\s*;$')
+  endfor
 
 endfunction
 
